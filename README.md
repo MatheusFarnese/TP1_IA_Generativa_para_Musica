@@ -13,20 +13,6 @@ transitions to generate a new sequence.
 The remaining imports (`random`, `sys`, and `collections`) are part of Python's
 standard library.
 
-## Installation
-
-It is recommended to create a virtual environment:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-On some Linux installations, creating a virtual environment may require the
-distribution's Python venv package (for example, `python3-venv` on Ubuntu).
-
 ## Usage
 
 Run the script with five positional arguments:
@@ -97,22 +83,38 @@ The generated tokens are expanded back into note events. The output preserves
 each source track's instrument program, drum flag, and name. Note velocity is
 set to `100` for generated notes.
 
-## Notes and limitations
+## Batch Processing
 
-- Each non-empty input track is processed independently.
-- The output MIDI tempo is initialized from the estimated input tempo (or
-  120 BPM if the input has no instrument tracks).
-- The implementation quantizes timing in **seconds**, not in beats.
-- `number_of_notes` is a target threshold, not an exact count, because a
-  generated token may contain multiple note events.
-- The code uses Python's `random` module without setting a seed, so separate
-  runs can produce different results.
-- If a track is too short to produce any Markov transitions, generation cannot
-  proceed for that track.
-- The algorithm's gap representation is intended for monophonic or
-  non-overlapping notes. Overlapping notes may not be reconstructed correctly.
+The `batch_generate.py` script allows you to process multiple MIDI files automatically using the Markov music generation algorithm.
 
-## Files
+### Usage
 
-- `markov_music.py`: commented implementation.
-- `requirements.txt`: Python dependency list.
+Place `batch_generate.py` in the same directory as `markov_music.py`. Then, run the following command from the project directory:
+
+```bash
+python3 batch_generate.py <input_folder>
+```
+
+Replace `<input_folder>` with the path to the directory containing the MIDI files you want to process.
+
+For example:
+
+```bash
+python3 batch_generate.py midis
+```
+
+The script processes all `.mid` files directly inside the specified directory and saves the generated files in an `output` subdirectory. Each output file is named `generated_<original_filename>.mid`.
+
+### Optional Parameters
+
+You can customize the generation parameters using the following options:
+
+```bash
+python3 batch_generate.py midis --notes 200 --k 4 --t 10
+```
+
+- `--notes`: Target number of generated note events per track (default: `120`).
+- `--k`: Minimum number of occurrences required for a pattern to be considered frequent (default: `3`).
+- `--t`: Maximum pattern length, measured in note events (default: `12`).
+
+The output directory is created automatically if it does not exist. If a file fails to process, the script reports the error and continues with the remaining files.
